@@ -4,16 +4,87 @@ import SuccessPage from './components/SuccessPage';
 import { allPresets } from './config/presets';
 import './styles/demo.css';
 
+// Merge custom configuration with preset, but only allow specific fields to be overridden
+function applyCustomConfig(preset, customConfig) {
+  if (!customConfig || !preset.params) return preset;
+
+  // Allowed top-level fields
+  const allowedFields = [
+    'domain',
+    'html_title',
+    'time',
+    'ray_id',
+    'client_ip'
+  ];
+
+  const customizedParams = { ...preset.params };
+
+  // Merge allowed top-level fields
+  allowedFields.forEach(field => {
+    if (customConfig[field] !== undefined) {
+      customizedParams[field] = customConfig[field];
+    }
+  });
+
+  // Merge location fields from nested status objects
+  // Only allow customizing the 'location' field within each status
+  if (customConfig.browser_status?.location !== undefined) {
+    customizedParams.browser_status = {
+      ...customizedParams.browser_status,
+      location: customConfig.browser_status.location
+    };
+  }
+
+  if (customConfig.cloudflare_status?.location !== undefined) {
+    customizedParams.cloudflare_status = {
+      ...customizedParams.cloudflare_status,
+      location: customConfig.cloudflare_status.location
+    };
+  }
+
+  if (customConfig.host_status?.location !== undefined) {
+    customizedParams.host_status = {
+      ...customizedParams.host_status,
+      location: customConfig.host_status.location
+    };
+  }
+
+  return {
+    ...preset,
+    params: customizedParams
+  };
+}
+
+// Get custom configuration from environment variable
+function getCustomConfig() {
+  const envConfig = import.meta.env.VITE_CONFIG_JSON;
+  if (envConfig) {
+    try {
+      const parsed = JSON.parse(envConfig);
+      console.log("Loaded custom config from VITE_CONFIG_JSON:", parsed);
+      return parsed;
+    } catch (e) {
+      console.error("Failed to parse VITE_CONFIG_JSON:", e);
+    }
+  }
+  return null;
+}
+
 function App() {
   const [currentPreset, setCurrentPreset] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [customConfig] = useState(getCustomConfig());
 
   useEffect(() => {
     // Randomly select a preset on mount
     const randomIndex = Math.floor(Math.random() * allPresets.length);
-    setCurrentPreset(allPresets[randomIndex]);
-  }, []);
+    const selectedPreset = allPresets[randomIndex];
+
+    // Apply custom config if available
+    const finalPreset = customConfig ? applyCustomConfig(selectedPreset, customConfig) : selectedPreset;
+    setCurrentPreset(finalPreset);
+  }, [customConfig]);
 
   if (!currentPreset) {
     return <div>Loading...</div>;
@@ -26,7 +97,14 @@ function App() {
 
   const handleRandomize = () => {
     const randomIndex = Math.floor(Math.random() * allPresets.length);
-    setCurrentPreset(allPresets[randomIndex]);
+    const selectedPreset = allPresets[randomIndex];
+    const finalPreset = customConfig ? applyCustomConfig(selectedPreset, customConfig) : selectedPreset;
+    setCurrentPreset(finalPreset);
+  };
+
+  const handlePresetSelect = (preset) => {
+    const finalPreset = customConfig ? applyCustomConfig(preset, customConfig) : preset;
+    setCurrentPreset(finalPreset);
   };
 
   const getCategoryClass = (category) => {
@@ -55,7 +133,7 @@ function App() {
                 <button
                   key={preset.id}
                   className={`demo-code-btn ${getCategoryClass(preset.category)} ${currentPreset.id === preset.id ? 'active' : ''}`}
-                  onClick={() => setCurrentPreset(preset)}
+                  onClick={() => handlePresetSelect(preset)}
                   title={`${preset.id} - ${preset.params?.title || ''}`}
                 >
                   {preset.params?.error_code || '200'}
@@ -93,12 +171,13 @@ function App() {
               )}
             </div>
 
+
             <div className="demo-presets-grid">
               {filteredPresets.map((preset) => (
                 <button
                   key={preset.id}
                   className={`demo-preset-btn ${getCategoryClass(preset.category)} ${currentPreset.id === preset.id ? 'active' : ''}`}
-                  onClick={() => setCurrentPreset(preset)}
+                  onClick={() => handlePresetSelect(preset)}
                   title={preset.params?.title || preset.id}
                 >
                   <span className="demo-preset-code">{preset.params?.error_code || '---'}</span>
