@@ -49,6 +49,14 @@ function applyCustomConfig(preset, customConfig) {
     };
   }
 
+  // Allow customizing perf_sec_by (footer link)
+  if (customConfig.perf_sec_by !== undefined) {
+    customizedParams.perf_sec_by = {
+      ...customizedParams.perf_sec_by,
+      ...customConfig.perf_sec_by
+    };
+  }
+
   return {
     ...preset,
     params: customizedParams
