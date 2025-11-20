@@ -1,24 +1,409 @@
 
-const createPreset = (code, title, description, action, type = 'error', source = 'host') => ({
-    id: `${code}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-    type,
-    params: {
-        title,
-        error_code: code,
-        domain: null,
-        time: null,
-        ray_id: null,
-        client_ip: '127.0.0.1',
-        more_information: { hidden: false, text: "Learn more", link: `https://httpcats.com/${code}` },
-        browser_status: { status: 'ok', status_text: 'Working', location: 'You', name: 'Browser' },
-        cloudflare_status: { status: 'ok', status_text: 'Working', location: 'Cloud', name: 'Cloudflare' },
-        host_status: { status: (type === 'error' && source === 'host') ? 'error' : 'ok', status_text: (type === 'error' && source === 'host') ? 'Error' : 'Working', name: 'Host' },
-        error_source: source,
-        what_happened: `<p>${description}</p>`,
-        what_can_i_do: `<p>${action}</p>`,
-        perf_sec_by: { text: "Cloudflare", link: "https://www.cloudflare.com" },
-    }
-});
+
+
+const createPreset = (code, title, description, action, type = 'error', source = 'host', category = 'standard') => {
+    const browserStatus = (type === 'error' && source === 'browser')
+        ? { status: 'error', status_text: 'Error', location: 'You', name: 'Browser' }
+        : { status: 'ok', status_text: 'Working', location: 'You', name: 'Browser' };
+
+    const cloudflareStatus = (type === 'error' && source === 'cloudflare')
+        ? { status: 'error', status_text: 'Error', location: 'Cloud', name: 'Cloudflare' }
+        : { status: 'ok', status_text: 'Working', location: 'Cloud', name: 'Cloudflare' };
+
+    const hostStatus = (type === 'error' && source === 'host')
+        ? { status: 'error', status_text: 'Error', name: 'Host' }
+        : { status: 'ok', status_text: 'Working', name: 'Host' };
+
+    return {
+        id: `${code}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        type,
+        category,
+        params: {
+            title,
+            error_code: code,
+            domain: null,
+            time: null,
+            ray_id: null,
+            client_ip: '127.0.0.1',
+            more_information: { hidden: false, text: "Learn more", link: `https://httpcats.com/${code}` },
+            browser_status: browserStatus,
+            cloudflare_status: cloudflareStatus,
+            host_status: hostStatus,
+            error_source: source,
+            what_happened: `<p>${description}</p>`,
+            what_can_i_do: `<p>${action}</p>`,
+            perf_sec_by: { text: "Cloudflare", link: "https://www.cloudflare.com" },
+        }
+    };
+};
+
+
+
+
+// Creative presets with custom status texts
+const creativePresets = [
+    {
+        id: '404-existential-crisis',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'Page Not Found',
+            error_code: 404,
+            browser_status: { status: 'ok', status_text: 'Confused', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Also Confused', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Missing', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>The page you are looking for went on vacation and never came back.</p>',
+            what_can_i_do: '<p>Try therapy. Or a different URL.</p>',
+        }
+    },
+    {
+        id: '500-monday-morning',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'Internal Server Error',
+            error_code: 500,
+            browser_status: { status: 'ok', status_text: 'Caffeinated', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Needs Coffee', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Still Sleeping', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>The server woke up on the wrong side of the datacenter.</p>',
+            what_can_i_do: '<p>Maybe come back after its morning coffee?</p>',
+        }
+    },
+    {
+        id: '503-overworked',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'Service Unavailable',
+            error_code: 503,
+            browser_status: { status: 'ok', status_text: 'Patient', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Standing By', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Burnt Out', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>The server is experiencing existential dread and needs a moment.</p>',
+            what_can_i_do: '<p>Try again later. Or never. Your choice.</p>',
+        }
+    },
+    {
+        id: '418-tea-break',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'I\'m a teapot',
+            error_code: 418,
+            browser_status: { status: 'ok', status_text: 'Thirsty', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Brewing', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Short & Stout', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>You asked a teapot to make coffee. Rude.</p>',
+            what_can_i_do: '<p>Accept tea instead. It\'s better for you anyway.</p>',
+        }
+    },
+    {
+        id: '502-game-of-telephone',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Bad Gateway',
+            error_code: 502,
+            browser_status: { status: 'ok', status_text: 'Waiting', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Bad Middleman', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'ok', status_text: 'Unreachable', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>The message got lost in translation.</p>',
+            what_can_i_do: '<p>Play telephone with someone more reliable.</p>',
+        }
+    },
+    {
+        id: '429-popular',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Too Many Requests',
+            error_code: 429,
+            browser_status: { status: 'ok', status_text: 'Enthusiastic', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Overwhelmed', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Exhausted', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>You are clicking way too fast. Are you a robot?</p>',
+            what_can_i_do: '<p>Slow down. Maybe go outside. Touch some grass.</p>',
+        }
+    },
+    {
+        id: '401-stranger-danger',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Unauthorized',
+            error_code: 401,
+            browser_status: { status: 'ok', status_text: 'Optimistic', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Suspicious', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Paranoid', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>We don\'t know you. And frankly, we don\'t want to.</p>',
+            what_can_i_do: '<p>Show some ID. Or fake it convincingly.</p>',
+        }
+    },
+    {
+        id: '504-infinite-wait',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Gateway Timeout',
+            error_code: 504,
+            browser_status: { status: 'ok', status_text: 'Still Here', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Gave Up', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'In A Coma', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>We waited. And waited. And waited. Eventually we just gave up.</p>',
+            what_can_i_do: '<p>Wake the server. Loudly.</p>',
+        }
+    },
+    {
+        id: '403-no-means-no',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Forbidden',
+            error_code: 403,
+            browser_status: { status: 'ok', status_text: 'Hopeful', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Neutral', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Hostile', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>You lack the proper credentials. And the proper attitude.</p>',
+            what_can_i_do: '<p>Bribe someone. Or just leave quietly.</p>',
+        }
+    },
+    {
+        id: '500-panic-mode',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Internal Server Error',
+            error_code: 500,
+            browser_status: { status: 'ok', status_text: 'Concerned', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Panicking', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'On Fire', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>Everything is fine. This is fine. We are all fine.</p>',
+            what_can_i_do: '<p>Pretend you didn\'t see this.</p>',
+        }
+    },
+    {
+        id: '200-barely',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'OK',
+            error_code: 200,
+            browser_status: { status: 'ok', status_text: 'Barely', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Kinda', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'ok', status_text: 'Not Really', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>It works. Sort of. If you squint.</p>',
+            what_can_i_do: '<p>Lower your expectations significantly.</p>',
+        }
+    },
+    {
+        id: '508-infinite-loop',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Loop Detected',
+            error_code: 508,
+            browser_status: { status: 'ok', status_text: 'Dizzy', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Going in Circles', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Stuck', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>We got stuck in a loop. We got stuck in a loop. We got stuck in a loop.</p>',
+            what_can_i_do: '<p>Break the cycle. Try Ctrl+C.</p>',
+        }
+    },
+    {
+        id: '404-amnesia',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Not Found',
+            error_code: 404,
+            browser_status: { status: 'ok', status_text: 'Searching', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Helping', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Forgetful', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>The server forgot where it put that page. Oops.</p>',
+            what_can_i_do: '<p>Help us look for it. Check under the couch?</p>',
+        }
+    },
+    {
+        id: '503-apocalypse',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Service Unavailable',
+            error_code: 503,
+            browser_status: { status: 'error', status_text: 'Terrified', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Apocalypse', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Gone', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>It\'s the end of the world as we know it.</p>',
+            what_can_i_do: '<p>Stock up on canned goods and wait it out.</p>',
+        }
+    },
+    {
+        id: '420-chill',
+        category: 'creative',
+        type: 'error',
+        params: {
+            title: 'Enhance Your Calm',
+            error_code: 420,
+            browser_status: { status: 'ok', status_text: 'Zen', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Mellow', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Super Chill', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>You\'re too stressed. The server is worried about you.</p>',
+            what_can_i_do: '<p>Take a deep breath. Maybe do some yoga.</p>',
+        }
+    },
+    {
+        id: '503-total-meltdown',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'Total System Meltdown',
+            error_code: 503,
+            browser_status: { status: 'error', status_text: 'Crashed', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Melting', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Dead', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>Everything. Absolutely everything went wrong.</p>',
+            what_can_i_do: '<p>Pray. Or reboot the universe.</p>',
+        }
+    },
+    {
+        id: '500-dumpster-fire',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'Dumpster Fire',
+            error_code: 500,
+            browser_status: { status: 'error', status_text: 'Smoking', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Burning', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Ashes', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>This is what we call a "dumpster fire" in the industry.</p>',
+            what_can_i_do: '<p>Grab marshmallows and watch it burn.</p>',
+        }
+    },
+    {
+        id: '418-identity-crisis',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'I\'m a Teapot (Identity Crisis)',
+            error_code: 418,
+            browser_status: { status: 'ok', status_text: 'Confused', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Mediating', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Existential Dread', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>The server is having an identity crisis. It thinks it\'s a teapot.</p>',
+            what_can_i_do: '<p>Convince it that being a server is cool too.</p>',
+        }
+    },
+    {
+        id: '404-void',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'Lost in the Void',
+            error_code: 404,
+            browser_status: { status: 'ok', status_text: 'Looking', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'No Clue', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Vanished', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>Your page fell into the void. It\'s gone. Forever.</p>',
+            what_can_i_do: '<p>Accept the void. Become one with it.</p>',
+        }
+    },
+    {
+        id: '502-miscommunication',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'Total Miscommunication',
+            error_code: 502,
+            browser_status: { status: 'ok', status_text: 'Said Hello', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Translating Badly', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'ok', status_text: 'Heard Gibberish', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>Lost in translation. Cloudflare is a terrible interpreter.</p>',
+            what_can_i_do: '<p>Try sign language. Or morse code.</p>',
+        }
+    },
+    {
+        id: '429-ddos-yourself',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'You DDoS\'d Yourself',
+            error_code: 429,
+            browser_status: { status: 'error', status_text: 'Spamming', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Blocking You', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Overwhelmed', name: 'Host' },
+            error_source: 'browser',
+            what_happened: '<p>Congratulations! You just DDoS\'d yourself.</p>',
+            what_can_i_do: '<p>Stop. Clicking. So. Fast.</p>',
+        }
+    },
+    {
+        id: '511-password-123456',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'Network Authentication Required',
+            error_code: 511,
+            browser_status: { status: 'ok', status_text: 'Trying Password', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Rejecting 123456', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'ok', status_text: 'Waiting', name: 'Host' },
+            error_source: 'cloudflare',
+            what_happened: '<p>Your password is probably "password" isn\'t it?</p>',
+            what_can_i_do: '<p>Try a stronger password. Like "Password1".</p>',
+        }
+    },
+    {
+        id: '404-internet-broke',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'The Internet Is Broken',
+            error_code: 404,
+            browser_status: { status: 'error', status_text: 'Disconnected', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'error', status_text: 'Cloud Offline', location: '???', name: 'Cloudflare' },
+            host_status: { status: 'error', status_text: 'Not Found', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>We broke the internet. Sorry.</p>',
+            what_can_i_do: '<p>Turn it off and back on again.</p>',
+        }
+    },
+    {
+        id: '200-imposter',
+        type: 'error',
+        category: 'creative',
+        params: {
+            title: 'Sus',
+            error_code: 200,
+            browser_status: { status: 'ok', status_text: 'Suspicious', location: 'You', name: 'Browser' },
+            cloudflare_status: { status: 'ok', status_text: 'Kinda Sus', location: 'Cloud', name: 'Cloudflare' },
+            host_status: { status: 'ok', status_text: 'Very Sus', name: 'Host' },
+            error_source: 'host',
+            what_happened: '<p>It says 200 OK but... something feels off.</p>',
+            what_can_i_do: '<p>Vote to eject the imposter.</p>',
+        }
+    },
+];
+
 
 export const errorPresets = [
     // 1xx: Informational
@@ -132,10 +517,12 @@ export const errorPresets = [
 export const successPreset = {
     id: 'success-easter-egg',
     type: 'success',
+    category: 'success',
     params: {
         title: 'Welcome!',
         error_code: 200,
     }
 };
 
-export const allPresets = [...errorPresets, successPreset];
+export const allPresets = [...creativePresets, ...errorPresets, successPreset];
+
