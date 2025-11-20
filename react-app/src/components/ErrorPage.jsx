@@ -3,6 +3,7 @@ import '../styles/main.css';
 
 const ErrorPage = ({ params = {} }) => {
     const [showIp, setShowIp] = useState(false);
+    const [showCat, setShowCat] = useState(false);
 
     const errorCode = params.error_code || 500;
     const title = params.title || 'Internal server error';
@@ -29,11 +30,42 @@ const ErrorPage = ({ params = {} }) => {
 
     return (
         <div id="cf-wrapper">
+            {showCat && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 9999,
+                        cursor: 'pointer'
+                    }}
+                    onClick={() => setShowCat(false)}
+                >
+                    <img
+                        src={`https://httpcats.com/${errorCode}.jpg`}
+                        alt={`Error ${errorCode}`}
+                        style={{ maxWidth: '90%', maxHeight: '90%', width: 'auto', height: 'auto', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}
+                    />
+                </div>
+            )}
             <div id="cf-error-details" className="p-0">
                 <header className="mx-auto pt-10 lg:pt-6 lg:px-8 w-240 lg:w-full mb-8">
                     <h1 className="inline-block sm:block sm:mb-2 font-light text-60 lg:text-4xl text-black-dark leading-tight mr-2">
                         <span className="inline-block" style={{ marginRight: '10px' }}>{title}</span>
-                        <span className="code-label">Error code {errorCode}</span>
+                        <span
+                            className="code-label"
+                            onClick={() => setShowCat(true)}
+                            style={{ cursor: 'pointer' }}
+                            title="Click for a surprise"
+                        >
+                            Error code {errorCode}
+                        </span>
                     </h1>
                     {(!moreInfo.hidden) && (
                         <div>
