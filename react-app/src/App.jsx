@@ -35,10 +35,11 @@ function applyCustomConfig(preset, customConfig) {
     };
   }
 
-  if (customConfig.cloudflare_status?.location !== undefined) {
+  if (customConfig.cloudflare_status?.location !== undefined || customConfig.cloudflare_status?.link !== undefined) {
     customizedParams.cloudflare_status = {
       ...customizedParams.cloudflare_status,
-      location: customConfig.cloudflare_status.location
+      ...(customConfig.cloudflare_status.location !== undefined ? { location: customConfig.cloudflare_status.location } : {}),
+      ...(customConfig.cloudflare_status.link !== undefined ? { link: customConfig.cloudflare_status.link } : {})
     };
   }
 

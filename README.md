@@ -64,7 +64,7 @@ You can customize the text, error codes, and status indicators without modifying
   "error_code": 200,
   "domain": "example.com",
   "browser_status": { "status": "ok", "status_text": "Working" },
-  "cloudflare_status": { "status": "ok", "status_text": "Working", "location": "Hong Kong" },
+  "cloudflare_status": { "status": "ok", "status_text": "Working", "location": "Hong Kong", "link": "https://www.cloudflare.com" },
   "host_status": { "status": "ok", "status_text": "Working" },
   "what_happened": "<p>All systems are operational.</p>",
   "what_can_i_do": "<p>Your website is running smoothly!</p>",
@@ -128,7 +128,8 @@ The app performs a deep merge, so you only need to provide the fields you want t
     "status": "error",
     "status_text": "Error",
     "location": "London",
-    "name": "Cloudflare"
+    "name": "Cloudflare",
+    "link": "https://www.cloudflare.com/zh-cn/5xx-error-landing/?utm_source=errorcode_500" // Link URL for Cloudflare status text
   },
   "host_status": {
     "status": "ok",
@@ -162,6 +163,7 @@ The app performs a deep merge, so you only need to provide the fields you want t
 | `more_information.hidden` | Hide "Visit cloudflare.com" link | `false` |
 | `browser_status.location` | Browser location text | `"You"` |
 | `cloudflare_status.location` | Cloudflare edge location | `"London"` |
+| `cloudflare_status.link` | Link URL for Cloudflare status text | `"https://www.cloudflare.com/zh-cn/5xx-error-landing/?utm_source=errorcode_500"` |
 | `host_status.location` | Host location (domain) | Same as `domain` |
 | `error_source` | Highlight error source section | `"cloudflare"` |
 | `what_happened` | HTML content for "What happened?" | Error description |

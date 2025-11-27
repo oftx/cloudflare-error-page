@@ -111,7 +111,18 @@ const ErrorPage = ({ params = {} }) => {
                                             <span className={`cf-icon-${status} w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4`}></span>
                                         </div>
                                         <span className="md:block w-full truncate">{item.location || defaultLocation}</span>
-                                        <h3 className="md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3">{item.name || defaultName}</h3>
+                                        {itemId === 'cloudflare' ? (
+                                            <a
+                                                href={item.link || 'https://www.cloudflare.com/zh-cn/5xx-error-landing/?utm_source=errorcode_500'}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="cloudflare-status-link block md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3"
+                                            >
+                                                {item.name || defaultName}
+                                            </a>
+                                        ) : (
+                                            <h3 className="md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3">{item.name || defaultName}</h3>
+                                        )}
                                         {' '}
                                         <span className="leading-1.3 text-2xl" style={{ color: textColor }}>{statusText}</span>
                                     </div>
